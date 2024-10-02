@@ -7,13 +7,12 @@ import (
 
 type commandNode struct {
 	Value  string
-	Output interface{}
 	Next   []*commandNode
+	Output interface{}
 }
 
 func getKeywords(commands []*commandNode) map[string]*commandNode {
 	keywordDict := make(map[string]*commandNode)
-
 	for _, command := range commands {
 		keywordDict[command.Value] = command
 	}
@@ -21,11 +20,9 @@ func getKeywords(commands []*commandNode) map[string]*commandNode {
 	return keywordDict
 }
 
-func getOutput(node *commandNode, args []string) interface{} {
-    fmt.Println(node.Value)
-    fmt.Println(args)
-	if len(args) == 1 && node.Output != nil {
-		return node.Output
+func getOutput(node *commandNode, args []string) *commandNode {
+	if len(args) == 1 {
+        return node
 	}
 
 	for i := 0; i < len(node.Next); i++ {
@@ -33,6 +30,7 @@ func getOutput(node *commandNode, args []string) interface{} {
 			getOutput(node.Next[i], args[1:])
 		}
 	}
+
 	return nil
 }
 
@@ -58,13 +56,12 @@ func main() {
 
 	keywordDict := getKeywords(commands)
 	args := os.Args[1:]
-    // this should not be needed in the final product
     if len(args) == 0 {
-        fmt.Println("no command ran")
         return
     }
 
 	if command, ok := keywordDict[args[0]]; ok {
-		fmt.Println(getOutput(command, args))
+		output := getOutput(command, args)
+        fmt.Println(output.Output)
 	}
 }
