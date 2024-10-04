@@ -1,9 +1,0 @@
-{
-    "parameters": {
-        "rpd": "GET",
-        "rpdname": "rpdname1"
-    },
-
-    "response": 
-        "Hello, world!"
-}

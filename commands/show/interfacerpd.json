@@ -1,7 +1,0 @@
-{
-    "parameters": {
-        "rpd": "GET"
-    },
-
-    "response": "Hello, world!"
-}
