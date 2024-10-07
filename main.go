@@ -11,6 +11,11 @@ type commandNode struct {
 	Output interface{}
 }
 
+type argumentNode struct {
+    commandNode
+    ValidAnswers []string
+}
+
 func getKeywords(commands []*commandNode) map[string]*commandNode {
 	keywordDict := make(map[string]*commandNode)
 	for _, command := range commands {

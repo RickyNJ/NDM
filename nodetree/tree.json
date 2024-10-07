@@ -1,0 +1,24 @@
+{
+    "commands": [
+        {
+        "value": "show",
+        "output": "no arguments given, use show --help",
+        "children": [
+            {
+            "value": "interface",
+            "output": "no arguments given, use show interface --help",
+            "children": [
+                {
+                    "value": "rpd",
+                    "outputpath": "/files/showinterfacerpd.txt"
+                },
+                {
+                    "value": "router",
+                    "output": "no clue what to put here"
+                }
+            ]
+            }
+        ]
+        }
+    ]
+}
