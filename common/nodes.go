@@ -1,6 +1,12 @@
 package common
 
-type commandNode struct {
+type CommandNode struct {
     Value string
-    Next []commandNode
+    Next []*CommandNode
+    Output interface{}
+}
+
+type argumentNode struct {
+    CommandNode
+    ValidAnswers []string
 }

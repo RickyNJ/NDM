@@ -3,21 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+
+	. "github.com/RickyNJ/NDM/common"
 )
 
-type commandNode struct {
-	Value  string
-	Next   []*commandNode
-	Output interface{}
-}
 
-type argumentNode struct {
-    commandNode
-    ValidAnswers []string
-}
-
-func getKeywords(commands []*commandNode) map[string]*commandNode {
-	keywordDict := make(map[string]*commandNode)
+func getKeywords(commands []*CommandNode) map[string]*CommandNode {
+	keywordDict := make(map[string]*CommandNode)
 	for _, command := range commands {
 		keywordDict[command.Value] = command
 	}
@@ -25,7 +17,7 @@ func getKeywords(commands []*commandNode) map[string]*commandNode {
 	return keywordDict
 }
 
-func getOutput(node *commandNode, args []string) *commandNode {
+func getOutput(node *CommandNode, args []string) *CommandNode {
     fmt.Println(node.Value)
 	if len(args) == 1 {
         return node
@@ -40,26 +32,26 @@ func getOutput(node *commandNode, args []string) *commandNode {
 }
 
 func main() {
-	rpdNode := &commandNode{
+	rpdNode := &CommandNode{
 		Value:  "rpd",
 		Output: "showing status rpd",
 	}
-	ccapNode := &commandNode{
+	ccapNode := &CommandNode{
 		Value:  "ccap",
 		Output: "showing status ccap",
 	}
-	interfaceNode := &commandNode{
+	interfaceNode := &CommandNode{
 		Value: "interface",
-		Next:  []*commandNode{rpdNode, ccapNode},
+		Next:  []*CommandNode{rpdNode, ccapNode},
         Output: "No arguments given, use show interface --help to see",
 	}
-	showNode := &commandNode{
+	showNode := &CommandNode{
 		Value: "show",
-		Next:  []*commandNode{interfaceNode},
+		Next:  []*CommandNode{interfaceNode},
         Output: "No arguments given, use show --help to see",
 	}
 
-	commands := []*commandNode{showNode}
+	commands := []*CommandNode{showNode}
 	keywordDict := getKeywords(commands)
 	args := os.Args[1:]
 
