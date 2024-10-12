@@ -22,7 +22,7 @@ Frontend:
 Any frontend should be possible. It should translate the mocks to a standardized json format.
 the current ideas are:
 	json files describing the mock, similar to wiremock
-	 a gui that allows the user to create trees visualizing the command trees
+	a gui that allows the user to create trees visualizing the command trees
 
 Translation layer:
 The translation layer is the json format the frontend needs to generate for appropriate mocks and responses need to be setup.
@@ -52,4 +52,6 @@ A very early implementation of the format:
     ]
 }
 
-
+Backend:
+The backend is the go program that takes in an array of strings, checks if the first values appears in the roots array and then recursively walks down the tree.
+When the function gets called with an array of strings of length 1, it outputs the output value of the associated node.

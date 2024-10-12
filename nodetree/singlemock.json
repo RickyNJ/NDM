@@ -1,0 +1,4 @@
+{
+    "command": "show interface rpd",
+    "response": "lorem ipsum"
+}
