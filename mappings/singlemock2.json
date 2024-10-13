@@ -1,0 +1,6 @@
+{
+    "command": "show",
+    "response": "no arguments given use 'show --help' for more information",
+    "arguments": "none",
+    "flags": "none"
+}

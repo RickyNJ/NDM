@@ -6,10 +6,10 @@ import (
 	"github.com/RickyNJ/NDM/mocks"
 )
 func main() {
-    fmt.Println("sup")
-
-    m := mocks.Generate("nodetree/singlemock.json")
-    fmt.Println(m.Response)
+    mocks := mocks.ReadMappingsDir()
+    for _, m := range mocks {
+        fmt.Println(m.Response) 
+    }
     return
 }
 // func main() {

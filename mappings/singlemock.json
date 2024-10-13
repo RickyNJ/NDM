@@ -1,0 +1,6 @@
+{
+    "command": "show interface",
+    "response": "no arguments given use 'show interface --help' for more information",
+    "arguments": "none",
+    "flags": "none"
+}
