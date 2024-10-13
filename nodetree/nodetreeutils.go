@@ -2,10 +2,42 @@ package nodetree
 
 import(
     "fmt"
-
-    . "github.com/RickyNJ/NDM/common"
 )
 
+type Node interface {
+    GetOutput(interface{}) string
+}
+
+type Mock struct {
+    Command string `json:"command"`
+    Response string `json:"response"`
+}
+
+type CommandNode struct {
+    Value string
+    Next []*CommandNode
+    Output string
+    OutputPath string
+}
+
+type argumentNode struct {
+    CommandNode
+    ValidAnswers []string
+}
+
+func ReadFile(path string) string {
+    return ""
+}
+
+func (n *CommandNode) GetOutput() string {
+    if n.Output !=  ""{
+        return n.Output
+    }
+    if n.OutputPath != "" {
+        return ReadFile(n.OutputPath)
+    }
+    return "" 
+}
 func GetKeywords(commands []*CommandNode) map[string]*CommandNode {
 	keywordDict := make(map[string]*CommandNode)
 	for _, command := range commands {
