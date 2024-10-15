@@ -23,21 +23,26 @@ type mock struct {
 }
 
 func updateTree(node *mockNode, command []string, response string) {
-    log.Println("updating tree with node: ", node.Value, "command: ", command)
+    log.Println("TREEUPDATE: tree with node: ", node.Value, "command: ", command)
     if len(command) == 1 {
+        log.Println("Final element of command")
         if node.Output != "" {
             panic("this command already has an output set!")
         } else {
+            log.Println("Set output: ",response)
             node.Output = response
         }
         return
     }
+
+    nextNode := &mockNode{Value: command[1]}
     for _, n := range node.Next{
         if n.Value == command[1] {
-            updateTree(n, command[1:], response)
+            log.Println("Found node in next with same value")
+            nextNode = n
         }
     }
-    nextNode := &mockNode{Value: command[1]}
+
     node.Next = append(node.Next, nextNode)
     updateTree(nextNode, command[1:], response)
 }
@@ -45,13 +50,14 @@ func updateTree(node *mockNode, command []string, response string) {
 func GenerateMockDevice(mocks []*mock) *mockDevice {
     device := &mockDevice{Commands: make(map[string]*mockNode)}
     for _, m := range mocks {
-        log.Println("Updating tree with mock: ", m.Command)
+        log.Println("NEWMOCK: tree with mock: ", m.Command)
         splitCommands := strings.Split(m.Command, " ")
         if _, ok := device.Commands[splitCommands[0]]; !ok {
-            log.Println("No root node found for: ", splitCommands[0], " Generating a node")
+            log.Println("NEWROOTCOMMAND: ", splitCommands[0], " Generating a node" )
             device.Commands[splitCommands[0]] = &mockNode{Value: splitCommands[0]}
+        } else {
+            log.Println("USEEXISTINGROOT")
         }
-        log.Println("Rootnode found:")
         updateTree(device.Commands[splitCommands[0]], splitCommands, m.Response)
     }
     return device 
