@@ -1,4 +1,4 @@
 {
-    "command": "show",
+    "command": "show interface kj",
     "response": "no arguments given use 'show  --help' for more information"
 }

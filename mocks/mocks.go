@@ -2,13 +2,13 @@ package mocks
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
+    "log"
 )
 
 type mockDevice struct {
-    commands map[string]*mockNode
+    Commands map[string]*mockNode
 }
 
 type mockNode struct {
@@ -23,8 +23,9 @@ type mock struct {
 }
 
 func updateTree(node *mockNode, command []string, response string) {
+    log.Println("updating tree with node: ", node.Value, "command: ", command)
     if len(command) == 1 {
-        if node.Output != " " {
+        if node.Output != "" {
             panic("this command already has an output set!")
         } else {
             node.Output = response
@@ -42,13 +43,16 @@ func updateTree(node *mockNode, command []string, response string) {
 }
 
 func GenerateMockDevice(mocks []*mock) *mockDevice {
-    device := &mockDevice{}
+    device := &mockDevice{Commands: make(map[string]*mockNode)}
     for _, m := range mocks {
+        log.Println("Updating tree with mock: ", m.Command)
         splitCommands := strings.Split(m.Command, " ")
-        if _, ok := device.commands[splitCommands[0]]; ok {
-            device.commands[splitCommands[0]] = &mockNode{Value: splitCommands[0]}
+        if _, ok := device.Commands[splitCommands[0]]; !ok {
+            log.Println("No root node found for: ", splitCommands[0], " Generating a node")
+            device.Commands[splitCommands[0]] = &mockNode{Value: splitCommands[0]}
         }
-        updateTree(device.commands[splitCommands[0]], splitCommands, m.Response)
+        log.Println("Rootnode found:")
+        updateTree(device.Commands[splitCommands[0]], splitCommands, m.Response)
     }
     return device 
 }
@@ -59,12 +63,12 @@ func GenerateFromJSON(filepath string) *mock {
     if err != nil {
         panic(err)
     }
-
+    
     unmarshallingError := json.Unmarshal(f, m)
     if unmarshallingError != nil {
         panic("error while mashaling ")
     }
-
+    log.Println("Generated mock from json: ", filepath, "\nCommand: ", m.Command, " \nResponse: ", m.Response)
     return m 
 }
 
@@ -78,7 +82,7 @@ func ReadMappingsDir() []*mock {
     for _, v := range mappings {
         var mapname string
         mapname = "mappings/" + v.Name()
-        fmt.Println(mapname)
+        log.Println("found:", mapname)
         m := GenerateFromJSON(mapname)
         result = append(result, m)
     }

@@ -6,9 +6,13 @@ import (
 	"github.com/RickyNJ/NDM/mocks"
 )
 func main() {
-    mocks := mocks.ReadMappingsDir()
-    for _, m := range mocks {
-        fmt.Println(m.Response) 
+    m := mocks.ReadMappingsDir()
+    d := mocks.GenerateMockDevice(m)
+
+    fmt.Println(d.Commands["show"])
+
+    for _, n := range d.Commands["show"].Next {
+        fmt.Println(n.Value)
     }
     return
 }
