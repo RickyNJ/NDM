@@ -22,22 +22,33 @@ type mock struct {
     Response string `json:"response"`
 }
 
-func updateTree(node *mockNode, command []string) {
+func updateTree(node *mockNode, command []string, response string) {
     if len(command) == 1 {
-           //  check if command already has output, if it does not set the output of that node
+        if node.Output != " " {
+            panic("this command already has an output set!")
+        } else {
+            node.Output = response
+        }
         return
     }
-    updateTree(node, command[1:])
+    for _, n := range node.Next{
+        if n.Value == command[1] {
+            updateTree(n, command[1:], response)
+        }
+    }
+    nextNode := &mockNode{Value: command[1]}
+    node.Next = append(node.Next, nextNode)
+    updateTree(nextNode, command[1:], response)
 }
 
 func GenerateMockDevice(mocks []*mock) *mockDevice {
     device := &mockDevice{}
     for _, m := range mocks {
         splitCommands := strings.Split(m.Command, " ")
-        if _, ok := device.commands[splitCommands[0]]; !ok {
+        if _, ok := device.commands[splitCommands[0]]; ok {
             device.commands[splitCommands[0]] = &mockNode{Value: splitCommands[0]}
         }
-        updateTree(device.commands[splitCommands[0]], splitCommands)
+        updateTree(device.commands[splitCommands[0]], splitCommands, m.Response)
     }
     return device 
 }
