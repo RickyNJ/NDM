@@ -7,22 +7,22 @@ import (
     "log"
 )
 
-type mockDevice struct {
-    Commands map[string]*mockNode
+type MockDevice struct {
+    Commands map[string]*MockNode
 }
 
-type mockNode struct {
+type MockNode struct {
     Value string
     Output string
-    Next []*mockNode
+    Next []*MockNode
 }
 
-type mock struct {
+type Mock struct {
     Command string `json:"command"`
     Response string `json:"response"`
 }
 
-func updateTree(node *mockNode, command []string, response string) {
+func updateTree(node *MockNode, command []string, response string) {
     log.Println("TREEUPDATE: tree with node: ", node.Value, "command: ", command)
     if len(command) == 1 {
         log.Println("Final element of command")
@@ -35,7 +35,7 @@ func updateTree(node *mockNode, command []string, response string) {
         return
     }
 
-    nextNode := &mockNode{Value: command[1]}
+    nextNode := &MockNode{Value: command[1]}
     for _, n := range node.Next{
         if n.Value == command[1] {
             log.Println("Found node in next with same value")
@@ -47,14 +47,14 @@ func updateTree(node *mockNode, command []string, response string) {
     updateTree(nextNode, command[1:], response)
 }
 
-func GenerateMockDevice(mocks []*mock) *mockDevice {
-    device := &mockDevice{Commands: make(map[string]*mockNode)}
+func GenerateMockDevice(mocks []*Mock) *MockDevice {
+    device := &MockDevice{Commands: make(map[string]*MockNode)}
     for _, m := range mocks {
         log.Println("NEWMOCK: tree with mock: ", m.Command)
         splitCommands := strings.Split(m.Command, " ")
         if _, ok := device.Commands[splitCommands[0]]; !ok {
             log.Println("NEWROOTCOMMAND: ", splitCommands[0], " Generating a node" )
-            device.Commands[splitCommands[0]] = &mockNode{Value: splitCommands[0]}
+            device.Commands[splitCommands[0]] = &MockNode{Value: splitCommands[0]}
         } else {
             log.Println("USEEXISTINGROOT")
         }
@@ -63,8 +63,8 @@ func GenerateMockDevice(mocks []*mock) *mockDevice {
     return device 
 }
 
-func GenerateFromJSON(filepath string) *mock {
-    m := &mock{} 
+func GenerateFromJSON(filepath string) *Mock {
+    m := &Mock{} 
     f, err := os.ReadFile(filepath)
     if err != nil {
         panic(err)
@@ -78,8 +78,8 @@ func GenerateFromJSON(filepath string) *mock {
     return m 
 }
 
-func ReadMappingsDir() []*mock {
-    var result []*mock
+func ReadMappingsDir() []*Mock {
+    var result []*Mock
     mappings, err  := os.ReadDir("mappings")
     if err != nil{
         panic("error while opening mappings directory")
