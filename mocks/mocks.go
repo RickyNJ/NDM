@@ -1,6 +1,7 @@
 package mocks
 
 import (
+    "fmt"
 	"encoding/json"
 	"os"
 	"strings"
@@ -34,8 +35,7 @@ func updateTree(node *MockNode, command []string, response string) {
         }
         return
     }
-
-    nextNode := &MockNode{Value: command[1]}
+    var nextNode *MockNode
     for _, n := range node.Next{
         if n.Value == command[1] {
             log.Println("Found node in next with same value")
@@ -43,12 +43,17 @@ func updateTree(node *MockNode, command []string, response string) {
         }
     }
 
-    node.Next = append(node.Next, nextNode)
+    if nextNode == nil {
+        nextNode = &MockNode{ Value: command[1]}
+        node.Next = append(node.Next, nextNode)
+    }
+
     updateTree(nextNode, command[1:], response)
 }
 
 func GenerateMockDevice(mocks []*Mock) *MockDevice {
     device := &MockDevice{Commands: make(map[string]*MockNode)}
+
     for _, m := range mocks {
         log.Println("NEWMOCK: tree with mock: ", m.Command)
         splitCommands := strings.Split(m.Command, " ")
@@ -60,6 +65,7 @@ func GenerateMockDevice(mocks []*Mock) *MockDevice {
         }
         updateTree(device.Commands[splitCommands[0]], splitCommands, m.Response)
     }
+
     return device 
 }
 
@@ -78,16 +84,16 @@ func GenerateFromJSON(filepath string) *Mock {
     return m 
 }
 
-func ReadMappingsDir() []*Mock {
+func ReadMappingsDir(dir string) []*Mock {
     var result []*Mock
-    mappings, err  := os.ReadDir("mappings")
+    mappings, err  := os.ReadDir(dir)
     if err != nil{
         panic("error while opening mappings directory")
     }
 
     for _, v := range mappings {
         var mapname string
-        mapname = "mappings/" + v.Name()
+        mapname = dir + v.Name()
         log.Println("found:", mapname)
         m := GenerateFromJSON(mapname)
         result = append(result, m)
@@ -96,3 +102,17 @@ func ReadMappingsDir() []*Mock {
     return result
 }
 
+func GetFinalNode(node *MockNode, args []string) *MockNode {
+    fmt.Println(node.Value)
+	if len(args) == 1 {
+        return node
+	}
+
+	for i := 0; i < len(node.Next); i++ {
+		if node.Next[i].Value == args[1] {
+			return GetFinalNode(node.Next[i], args[1:])
+		}
+	}
+
+	return nil
+}

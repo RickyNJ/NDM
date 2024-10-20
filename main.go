@@ -1,38 +1,32 @@
 package main
 
 import (
-	"container/list"
+	"bufio"
 	"fmt"
+	"os"
+    "strings"
 
-	"github.com/RickyNJ/NDM/mocks"
+	. "github.com/RickyNJ/NDM/mocks"
 )
-func ReadTree(root *mocks.MockNode)[]string{
-    q := list.New()
-    result := []string{}
-
-    q.PushBack(root)
-
-    for q.Len() > 0 {
-        current := q.Front().Value.(*mocks.MockNode)
-        result = append(result, current.Value)
-        q.Remove(q.Front())
-        for _, m := range current.Next {
-            q.PushBack(m)
-        }
-    }
-    return result
-} 
-
-func GetCommandTree(device *mocks.MockDevice, command string) []string {
-    return ReadTree(device.Commands["command"])
-}
 
 func main() {
-    m := mocks.ReadMappingsDir()
-    d := mocks.GenerateMockDevice(m)
+    reader := bufio.NewReader(os.Stdin)
+
+    m := ReadMappingsDir("mappings/")
+    d := GenerateMockDevice(m)
 
 
-    fmt.Println(len(d.Commands))
-    fmt.Println(ReadTree(d.Commands["show"]))
-    return
+    for {
+        fmt.Print(">> ")
+        input, _ := reader.ReadString('\n')
+        splitInput := strings.Split(input, " ")
+        fmt.Println(len(splitInput))
+
+        if val, ok := d.Commands[splitInput[0]]; ok {
+            output := GetFinalNode(val, splitInput)
+            fmt.Println(output.Output)
+        } else {
+            fmt.Println("command not configured")
+        }
+    }
 }
