@@ -1,4 +1,4 @@
 {
     "command": "show cable",
-    "responsefile": "response1.txt"
+    "responsefile": "response2.json"
 }

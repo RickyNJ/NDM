@@ -117,11 +117,11 @@ func GetFinalNode(node *MockNode, args []string) *MockNode {
 		}
 	}
 
-	return nil
+	return &MockNode{Output: "this command has not been configured"}
 }
 
 func readOutputfile(node *MockNode) string {
-    filepath := "files/" + node.OutputFile
+    filepath := "__files/" + node.OutputFile
     file, err := os.Open(filepath)
     if err != nil {
         log.Fatalf("could not open response file ", node.OutputFile, err )
@@ -140,7 +140,7 @@ func readOutputfile(node *MockNode) string {
 func GetNodeOutput(node *MockNode) string {
 
     if node.Output != "" {
-        return node.Output
+        return node.Output + "\n"
     }
 
     if node.OutputFile != "" {

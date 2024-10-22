@@ -15,15 +15,7 @@ func main() {
 
     m := ReadMappingsDir("mappings/")
     d := GenerateMockDevice(m)
-    // input := []string{"show", "interface", "kj"}
-    // final := GetFinalNode(d.Commands["show"], input)
-    // fmt.Println(final.Output)
-    //
-    //
-    // if val, ok := d.Commands[input[0]]; ok {
-    //     output := GetFinalNode(val, input)
-    //     fmt.Println(output.Output)
-    // }
+
     for {
         fmt.Print(">> ")
         input, _ := reader.ReadString('\n')
@@ -35,7 +27,7 @@ func main() {
 
         if val, ok := d.Commands[splitInput[0]]; ok {
             output := GetFinalNode(val, splitInput)
-            fmt.Println(GetNodeOutput(output))
+            fmt.Print(GetNodeOutput(output))
         } else {
             fmt.Println("command not configured")
         }
