@@ -1,4 +1,4 @@
 {
     "command": "show cable",
-    "response": "no arguments given use 'show  --help' for more information"
+    "responsefile": "response1.txt"
 }

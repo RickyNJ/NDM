@@ -1,11 +1,11 @@
 package mocks
 
 import (
-    "fmt"
 	"encoding/json"
+	"io"
+	"log"
 	"os"
 	"strings"
-    "log"
 )
 
 type MockDevice struct {
@@ -15,15 +15,17 @@ type MockDevice struct {
 type MockNode struct {
     Value string
     Output string
+    OutputFile string
     Next []*MockNode
 }
 
 type Mock struct {
     Command string `json:"command"`
     Response string `json:"response"`
+    ResponseFile string `json:"responsefile"`
 }
 
-func updateTree(node *MockNode, command []string, response string) {
+func updateTree(node *MockNode, command []string, response string, responsefile string) {
     log.Println("TREEUPDATE: tree with node: ", node.Value, "command: ", command)
     if len(command) == 1 {
         log.Println("Final element of command")
@@ -32,6 +34,7 @@ func updateTree(node *MockNode, command []string, response string) {
         } else {
             log.Println("Set output: ",response)
             node.Output = response
+            node.OutputFile = responsefile
         }
         return
     }
@@ -48,7 +51,7 @@ func updateTree(node *MockNode, command []string, response string) {
         node.Next = append(node.Next, nextNode)
     }
 
-    updateTree(nextNode, command[1:], response)
+    updateTree(nextNode, command[1:], response, responsefile)
 }
 
 func GenerateMockDevice(mocks []*Mock) *MockDevice {
@@ -63,7 +66,7 @@ func GenerateMockDevice(mocks []*Mock) *MockDevice {
         } else {
             log.Println("USEEXISTINGROOT")
         }
-        updateTree(device.Commands[splitCommands[0]], splitCommands, m.Response)
+        updateTree(device.Commands[splitCommands[0]], splitCommands, m.Response, m.ResponseFile)
     }
 
     return device 
@@ -80,7 +83,8 @@ func GenerateFromJSON(filepath string) *Mock {
     if unmarshallingError != nil {
         panic("error while mashaling ")
     }
-    log.Println("Generated mock from json: ", filepath, "\nCommand: ", m.Command, " \nResponse: ", m.Response)
+    log.Println("Generated mock from json: ", filepath, "\nCommand: ", m.Command, " \nResponse: ", m.Response, "\nResponseFile: ", m.ResponseFile )
+
     return m 
 }
 
@@ -103,7 +107,6 @@ func ReadMappingsDir(dir string) []*Mock {
 }
 
 func GetFinalNode(node *MockNode, args []string) *MockNode {
-    fmt.Println(node.Value)
 	if len(args) == 1 {
         return node
 	}
@@ -115,4 +118,34 @@ func GetFinalNode(node *MockNode, args []string) *MockNode {
 	}
 
 	return nil
+}
+
+func readOutputfile(node *MockNode) string {
+    filepath := "files/" + node.OutputFile
+    file, err := os.Open(filepath)
+    if err != nil {
+        log.Fatalf("could not open response file ", node.OutputFile, err )
+    }
+    defer file.Close()
+
+    response, err := io.ReadAll(file) 
+    if err != nil {
+        log.Fatalf("could not read content of response file ", node.OutputFile, err)
+    }
+
+    return string(response)
+
+}
+
+func GetNodeOutput(node *MockNode) string {
+
+    if node.Output != "" {
+        return node.Output
+    }
+
+    if node.OutputFile != "" {
+        return readOutputfile(node)
+    } 
+
+    return "this command has no output configured"
 }

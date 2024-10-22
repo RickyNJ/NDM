@@ -29,7 +29,7 @@ func GetCommandTree(device *MockDevice, command string) []string {
 }
 
 func TestTreeCreation(t *testing.T) {
-    m := ReadMappingsDir("../mappings")
+    m := ReadMappingsDir("../mappings/")
     d := GenerateMockDevice(m)
 
     fmt.Println(len(d.Commands))
