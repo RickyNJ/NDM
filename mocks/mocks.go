@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -14,6 +15,7 @@ type MockDevice struct {
 
 type ArgNode struct {
     Value string
+    ValidAnswers []string
     Output string
     OutputFile string
     Next []*MockNode
@@ -55,8 +57,13 @@ func checkForMatchingNode(node *MockNode, nextArg string) *MockNode {
     return nil
 }
 
-func checkForMatchingArgument(node *MockNode) *ArgNode {
-
+func checkForMatchingArgument(node *MockNode, nextArg string) *ArgNode {
+    for _, n := range node.Args{
+          if slices.Contains(n.ValidAnswers, nextArg) {
+              return n
+          }
+    }
+    return nil
 }
 
 func updateTree(node *MockNode, command []string, response string, responsefile string) {
