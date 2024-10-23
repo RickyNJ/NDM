@@ -7,14 +7,14 @@ import (
     "strings"
     "slices"
 
-    . "github.com/RickyNJ/NDM/mocks"
+    "github.com/RickyNJ/NDM/mocks"
 )
 
 func main() {
     reader := bufio.NewReader(os.Stdin)
 
-    m := ReadMappingsDir("mappings/")
-    d := GenerateMockDevice(m)
+    m := mocks.ReadMappingsDir("__mappings/")
+    d := mocks.GenerateMockDevice(m)
 
     for {
         fmt.Print(">> ")
@@ -25,11 +25,6 @@ func main() {
             return s == ""
         })
 
-        if val, ok := d.Commands[splitInput[0]]; ok {
-            output := GetFinalNode(val, splitInput)
-            fmt.Print(GetNodeOutput(output))
-        } else {
-            fmt.Println("command not configured")
-        }
+        fmt.Print(mocks.GetResponse(d, splitInput))
     }
 }

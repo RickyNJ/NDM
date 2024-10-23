@@ -1,0 +1,5 @@
+
+{
+    "command": "test interface {device}",
+    "response": "testing interface {device}"
+}

@@ -12,17 +12,51 @@ type MockDevice struct {
     Commands map[string]*MockNode
 }
 
+type ArgNode struct {
+    Value string
+    Output string
+    OutputFile string
+    Next []*MockNode
+    Args []*ArgNode
+}
+
 type MockNode struct {
     Value string
     Output string
     OutputFile string
     Next []*MockNode
+    Args []*ArgNode
 }
 
 type Mock struct {
     Command string `json:"command"`
     Response string `json:"response"`
     ResponseFile string `json:"responsefile"`
+}
+
+
+
+func GetResponse(device *MockDevice, command []string) string {
+    if val, ok := device.Commands[command[0]]; ok {
+        output := GetFinalNode(val, command)
+        return GetNodeOutput(output)
+    } else {
+        return "command not configured"
+    }
+}
+
+func checkForMatchingNode(node *MockNode, nextArg string) *MockNode {
+    for _, n := range node.Next{
+        if n.Value == nextArg {
+            log.Println("Found node in next with same value")
+            return n
+        }
+    }
+    return nil
+}
+
+func checkForMatchingArgument(node *MockNode) *ArgNode {
+
 }
 
 func updateTree(node *MockNode, command []string, response string, responsefile string) {
@@ -38,12 +72,12 @@ func updateTree(node *MockNode, command []string, response string, responsefile 
         }
         return
     }
+
     var nextNode *MockNode
-    for _, n := range node.Next{
-        if n.Value == command[1] {
-            log.Println("Found node in next with same value")
-            nextNode = n
-        }
+    nextNode = checkForMatchingNode(node, command[1])
+
+    if nextNode == nil {
+        
     }
 
     if nextNode == nil {
@@ -72,7 +106,7 @@ func GenerateMockDevice(mocks []*Mock) *MockDevice {
     return device 
 }
 
-func GenerateFromJSON(filepath string) *Mock {
+func generateFromJSON(filepath string) *Mock {
     m := &Mock{} 
     f, err := os.ReadFile(filepath)
     if err != nil {
@@ -99,7 +133,7 @@ func ReadMappingsDir(dir string) []*Mock {
         var mapname string
         mapname = dir + v.Name()
         log.Println("found:", mapname)
-        m := GenerateFromJSON(mapname)
+        m := generateFromJSON(mapname)
         result = append(result, m)
     }
 
@@ -138,7 +172,6 @@ func readOutputfile(node *MockNode) string {
 }
 
 func GetNodeOutput(node *MockNode) string {
-
     if node.Output != "" {
         return node.Output + "\n"
     }
@@ -149,3 +182,4 @@ func GetNodeOutput(node *MockNode) string {
 
     return "this command has no output configured"
 }
+
