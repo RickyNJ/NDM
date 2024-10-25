@@ -13,21 +13,18 @@ type MockDevice struct {
     Commands map[string]*MockNode
 }
 
-type ArgNode struct {
-    Value string
-    ValidAnswers []string
-    Output string
-    OutputFile string
-    Next []*MockNode
-    Args []*ArgNode
-}
 
 type MockNode struct {
     Value string
     Output string
     OutputFile string
     Next []*MockNode
-    Args []*ArgNode
+    Args []*VarNode
+}
+
+type VarNode struct {
+    MockNode 
+    ValidAnswers []string
 }
 
 type Mock struct {
@@ -36,6 +33,21 @@ type Mock struct {
     ResponseFile string `json:"responsefile"`
 }
 
+type Node interface {
+    CheckIfValid(string) bool
+}
+
+func Check(n Node, input string) bool {
+    return n.CheckIfValid(input)
+}
+
+func (n MockNode) CheckIfValid(input string) bool {
+    if input == n.Value {
+        return true
+    }
+
+    return false
+}
 
 
 func GetResponse(device *MockDevice, command []string) string {
@@ -43,7 +55,7 @@ func GetResponse(device *MockDevice, command []string) string {
         output := GetFinalNode(val, command)
         return GetNodeOutput(output)
     } else {
-        return "command not configured"
+        return "command not configured\n"
     }
 }
 
@@ -54,10 +66,12 @@ func checkForMatchingNode(node *MockNode, nextArg string) *MockNode {
             return n
         }
     }
+
+    Check(node, nextArg)
     return nil
 }
 
-func checkForMatchingArgument(node *MockNode, nextArg string) *ArgNode {
+func checkForMatchingArgument(node *MockNode, nextArg string) *VarNode {
     for _, n := range node.Args{
           if slices.Contains(n.ValidAnswers, nextArg) {
               return n
