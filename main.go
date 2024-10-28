@@ -20,11 +20,14 @@ func main() {
         fmt.Print(">> ")
         input, _ := reader.ReadString('\n')
         input = strings.TrimSuffix(input, "\n")
+        
         splitInput := strings.Split(input, " ")
         splitInput = slices.DeleteFunc(splitInput, func(s string) bool {
             return s == ""
         })
 
-        fmt.Print(mocks.GetResponse(d, splitInput))
+        if len(splitInput) > 0 {
+            fmt.Print(mocks.GetResponse(d, splitInput))
+        }
     }
 }

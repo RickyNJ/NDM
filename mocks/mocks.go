@@ -5,25 +5,24 @@ import (
 	"io"
 	"log"
 	"os"
-	"slices"
 	"strings"
+
 )
 
 type MockDevice struct {
-    Commands map[string]*MockNode
+    Commands map[string]*BaseNode
 }
 
-
-type MockNode struct {
+type BaseNode struct {
     Value string
     Output string
     OutputFile string
-    Next []*MockNode
-    Args []*VarNode
+    Next []*BaseNode
+    VariableNext []*VarNode
 }
 
 type VarNode struct {
-    MockNode 
+    *BaseNode
     ValidAnswers []string
 }
 
@@ -41,14 +40,13 @@ func Check(n Node, input string) bool {
     return n.CheckIfValid(input)
 }
 
-func (n MockNode) CheckIfValid(input string) bool {
+
+func (n *BaseNode) CheckIfValid(input string) bool {
     if input == n.Value {
         return true
     }
-
     return false
 }
-
 
 func GetResponse(device *MockDevice, command []string) string {
     if val, ok := device.Commands[command[0]]; ok {
@@ -59,28 +57,39 @@ func GetResponse(device *MockDevice, command []string) string {
     }
 }
 
-func checkForMatchingNode(node *MockNode, nextArg string) *MockNode {
-    for _, n := range node.Next{
+func matchVarNode(node *BaseNode, nextArg string) *VarNode {
+    var next *VarNode
+
+    for _, n := range node.VariableNext {
         if n.Value == nextArg {
             log.Println("Found node in next with same value")
-            return n
+            next = n
         }
     }
-
-    Check(node, nextArg)
-    return nil
-}
-
-func checkForMatchingArgument(node *MockNode, nextArg string) *VarNode {
-    for _, n := range node.Args{
-          if slices.Contains(n.ValidAnswers, nextArg) {
-              return n
-          }
+    if next != nil {
+        // create default node here 
+        nextBase := &BaseNode{Value: nextArg}
+        next = &VarNode{BaseNode: nextBase}
+        node.VariableNext = append(node.VariableNext, next)
     }
-    return nil
+    return next
 }
 
-func updateTree(node *MockNode, command []string, response string, responsefile string) {
+func matchDefaultNode(node *BaseNode, nextArg string) *BaseNode {
+    var next *BaseNode
+    for _, n := range node.Next {
+        if n.Value == nextArg {
+            next = n
+        }
+    }
+    if next != nil {
+        next = &BaseNode{Value: nextArg}
+    }
+    return next
+}
+
+
+func updateTree(node *BaseNode, command []string, response string, responsefile string) {
     log.Println("TREEUPDATE: tree with node: ", node.Value, "command: ", command)
     if len(command) == 1 {
         log.Println("Final element of command")
@@ -94,30 +103,32 @@ func updateTree(node *MockNode, command []string, response string, responsefile 
         return
     }
 
-    var nextNode *MockNode
-    nextNode = checkForMatchingNode(node, command[1])
-
-    if nextNode == nil {
-        
-    }
-
-    if nextNode == nil {
-        nextNode = &MockNode{ Value: command[1]}
-        node.Next = append(node.Next, nextNode)
+    var nextNode *BaseNode
+    runes := []rune(command[1])
+    switch runes[0] {
+    case '{':
+        if runes[len(runes)-1] != '}' {
+            panic("either unclosed argument bracket \"{}\" or no space after variable declaration in mappings file")
+        }
+        nextNode = matchVarNode(node, command[1]).BaseNode
+    case '-':
+        //  Implement later
+    default:
+        nextNode = matchDefaultNode(node, command[1])
     }
 
     updateTree(nextNode, command[1:], response, responsefile)
 }
 
 func GenerateMockDevice(mocks []*Mock) *MockDevice {
-    device := &MockDevice{Commands: make(map[string]*MockNode)}
+    device := &MockDevice{Commands: make(map[string]*BaseNode)}
 
     for _, m := range mocks {
         log.Println("NEWMOCK: tree with mock: ", m.Command)
         splitCommands := strings.Split(m.Command, " ")
         if _, ok := device.Commands[splitCommands[0]]; !ok {
             log.Println("NEWROOTCOMMAND: ", splitCommands[0], " Generating a node" )
-            device.Commands[splitCommands[0]] = &MockNode{Value: splitCommands[0]}
+            device.Commands[splitCommands[0]] = &BaseNode{Value: splitCommands[0]}
         } else {
             log.Println("USEEXISTINGROOT")
         }
@@ -145,9 +156,9 @@ func generateFromJSON(filepath string) *Mock {
 
 func ReadMappingsDir(dir string) []*Mock {
     var result []*Mock
-    mappings, err  := os.ReadDir(dir)
+    mappings, err := os.ReadDir(dir)
     if err != nil{
-        panic("error while opening mappings directory")
+        panic(err)
     }
 
     for _, v := range mappings {
@@ -161,7 +172,7 @@ func ReadMappingsDir(dir string) []*Mock {
     return result
 }
 
-func GetFinalNode(node *MockNode, args []string) *MockNode {
+func GetFinalNode(node *BaseNode, args []string) *BaseNode {
 	if len(args) == 1 {
         return node
 	}
@@ -172,10 +183,10 @@ func GetFinalNode(node *MockNode, args []string) *MockNode {
 		}
 	}
 
-	return &MockNode{Output: "this command has not been configured"}
+	return &BaseNode{Output: "this command has not been configured"}
 }
 
-func readOutputfile(node *MockNode) string {
+func readOutputfile(node *BaseNode) string {
     filepath := "__files/" + node.OutputFile
     file, err := os.Open(filepath)
     if err != nil {
@@ -192,7 +203,7 @@ func readOutputfile(node *MockNode) string {
 
 }
 
-func GetNodeOutput(node *MockNode) string {
+func GetNodeOutput(node *BaseNode) string {
     if node.Output != "" {
         return node.Output + "\n"
     }
