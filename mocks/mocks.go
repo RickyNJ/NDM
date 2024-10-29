@@ -66,7 +66,7 @@ func matchVarNode(node *BaseNode, nextArg string) *VarNode {
             next = n
         }
     }
-    if next != nil {
+    if next == nil {
         // create default node here 
         nextBase := &BaseNode{Value: nextArg}
         next = &VarNode{BaseNode: nextBase}
@@ -76,13 +76,17 @@ func matchVarNode(node *BaseNode, nextArg string) *VarNode {
 }
 
 func matchDefaultNode(node *BaseNode, nextArg string) *BaseNode {
+    log.Println("matching default node: ", node.Value)
+    log.Println("argument value to match: ", nextArg)
     var next *BaseNode
+
     for _, n := range node.Next {
         if n.Value == nextArg {
             next = n
         }
     }
-    if next != nil {
+
+    if next == nil {
         next = &BaseNode{Value: nextArg}
     }
     return next
@@ -139,6 +143,7 @@ func GenerateMockDevice(mocks []*Mock) *MockDevice {
 }
 
 func generateFromJSON(filepath string) *Mock {
+    // add first element of a command is not allowed to be a variable or a flag
     m := &Mock{} 
     f, err := os.ReadFile(filepath)
     if err != nil {
@@ -190,13 +195,13 @@ func readOutputfile(node *BaseNode) string {
     filepath := "__files/" + node.OutputFile
     file, err := os.Open(filepath)
     if err != nil {
-        log.Fatalf("could not open response file ", node.OutputFile, err )
+        panic(err)
     }
     defer file.Close()
 
     response, err := io.ReadAll(file) 
     if err != nil {
-        log.Fatalf("could not read content of response file ", node.OutputFile, err)
+        panic(err)
     }
 
     return string(response)

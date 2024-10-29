@@ -7,19 +7,23 @@ import (
 	"testing"
 )
 
-func ReadTree(root *MockNode)[]string{
+func ReadTree(root *BaseNode)[]string{
     q := list.New()
     result := []string{}
 
     q.PushBack(root)
 
     for q.Len() > 0 {
-        current := q.Front().Value.(*MockNode)
+        current := q.Front().Value.(*BaseNode)
         result = append(result, current.Value)
         q.Remove(q.Front())
         for _, m := range current.Next {
             q.PushBack(m)
         }
+        for _, v := range current.VariableNext {
+            q.PushBack(v)
+        }
+        
     }
     return result
 } 
@@ -34,6 +38,8 @@ func TestTreeCreation(t *testing.T) {
 
     fmt.Println(len(d.Commands))
     showtree := ReadTree(d.Commands["show"])
+
+    fmt.Println(showtree)
 
     if !reflect.DeepEqual(showtree, []string{"show", "interface", "cable", "kj"}) {
         t.Fatal("not equal")
